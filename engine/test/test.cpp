@@ -6,7 +6,9 @@
  * Licença: LGPL. Sem copyright.
  */
 #include "test.h"
-#include "frontend.h"
+#include "util/frontend.h"
+#include "titlescreen.h"
+#include "stage.h"
 
 Test::Test()
     : Game("a")
@@ -18,15 +20,21 @@ Test::load_level(const string& id)
 {
     if (id == "a")
     {
-        return new FrontEnd("b", "res/images/hexagon.png");
+        return new FrontEnd("a", "b", "res/images/hexagon.png");
     }
     else if (id == "b")
     {
-        return new FrontEnd("c", "res/images/star.png");
+        return new FrontEnd("b", "c", "res/images/star.png");
     }
     else if (id == "c")
     {
-        return new FrontEnd("", "res/images/spiral.png");
+        return new FrontEnd("c", "title", "res/images/spiral.png");
+    } else if (id == "title")
+    {
+        return new TitleScreen();
+    } else if (id == "stage1")
+    {
+        return new Stage("stage1");
     }
 
     return nullptr;

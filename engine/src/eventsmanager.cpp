@@ -5,15 +5,16 @@
  * Data: 17/04/2015
  * Licença: LGPL. Sem copyright.
  */
-#include "eventsmanager.h"
-#include "systemevent.h"
-#include "keyboardevent.h"
-#include "mousebuttonevent.h"
-#include "joystickevent.h"
-#include "systemeventlistener.h"
-#include "keyboardeventlistener.h"
-#include "mousebuttoneventlistener.h"
-#include "joystickeventlistener.h"
+#include "core/eventsmanager.h"
+#include "core/systemevent.h"
+#include "core/keyboardevent.h"
+#include "core/mousebuttonevent.h"
+#include "core/mousemotionevent.h"
+#include "core/joystickevent.h"
+#include "core/systemeventlistener.h"
+#include "core/keyboardeventlistener.h"
+#include "core/mousebuttoneventlistener.h"
+#include "core/joystickeventlistener.h"
 
 #include <list>
 
@@ -34,12 +35,18 @@ EventsManager::register_keyboard_event_listener(KeyboardEventListener *listener)
     m_keyboard_event_listeners.push_back(listener);
 }
 
-
 void
 EventsManager::register_mouse_button_event_listener(MouseButtonEventListener
     *listener)
 {
     m_mouse_button_event_listeners.push_back(listener);
+}
+
+void
+EventsManager::register_mouse_motion_event_listener(MouseMotionEventListener
+    *listener)
+{
+    m_mouse_motion_event_listeners.push_back(listener);
 }
 
 void
@@ -61,12 +68,18 @@ EventsManager::unregister_keyboard_event_listener(KeyboardEventListener *listene
     m_keyboard_event_listeners.remove(listener);
 }
 
-
 void
 EventsManager::unregister_mouse_button_event_listener(MouseButtonEventListener
     *listener)
 {
     m_mouse_button_event_listeners.remove(listener);
+}
+
+void
+EventsManager::unregister_mouse_motion_event_listener(MouseMotionEventListener
+    *listener)
+{
+    m_mouse_motion_event_listeners.remove(listener);
 }
 
 void
@@ -99,6 +112,22 @@ EventsManager::dispatch_pending_events()
             break;
         }
 
+        case SDL_MOUSEMOTION:
+        {
+            MouseMotionEvent me = MouseMotionEvent::from_SDL(e);
+
+            for (auto ls : m_mouse_motion_event_listeners)
+            {
+                if (ls->onMouseMotionEvent(me))
+                {
+                    break;
+                }
+            }
+
+            break;
+        }
+
+
         case SDL_MOUSEBUTTONDOWN:
         case SDL_MOUSEBUTTONUP:
         {
@@ -118,6 +147,11 @@ EventsManager::dispatch_pending_events()
         case SDL_KEYDOWN:
         case SDL_KEYUP:
         {
+            if (e.key.repeat != 0)
+            {
+                break;
+            }
+
             KeyboardEvent ke = KeyboardEvent::from_SDL(e);
 
             for (auto ls : m_keyboard_event_listeners)

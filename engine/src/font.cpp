@@ -1,80 +1,140 @@
-#include "font.h"
+/*
+ * Implementação da classe que representa uma fonte.
+ *
+ * Autor: Carlos Oliveira
+ * Data: 18/04/2015
+ * Licença: LGPL. Sem copyright.
+ */
+#include "core/font.h"
 
-Font_Manager* 
-Font_Manager::instance = NULL;
-
-Font_Manager*
-Font_Manager::Instance()
+class Font::Impl
 {
-	if(!instance){
-		instance = new Font_Manager;
-		init();
-	}
-	return instance;
+public:
+    Impl(TTF_Font *font, const string& path, int size)
+        : m_font(font), m_path(path), m_size(size), m_style(NORMAL)
+    {
+    }
+
+    ~Impl()
+    {
+        if (m_font)
+        {
+            TTF_CloseFont(m_font);
+        }
+    }
+
+    TTF_Font * font() const
+    {
+        return m_font;
+    }
+
+    int size() const
+    {
+        return m_size;
+    }
+
+    Style style() const
+    {
+        return m_style;
+    }
+
+    void set_size(int size)
+    {
+        change_size(size);
+    }
+
+    void set_style(Style style)
+    {
+        switch (style)
+        {
+        case BOLD:
+            TTF_SetFontStyle(m_font, TTF_STYLE_BOLD);
+            break;
+
+        case ITALIC:
+            TTF_SetFontStyle(m_font, TTF_STYLE_ITALIC);
+            break;
+
+        default:
+            TTF_SetFontStyle(m_font, TTF_STYLE_NORMAL);
+            break;
+        }
+    }
+
+private:
+    TTF_Font *m_font;
+    string m_path;
+    int m_size;
+    Style m_style;
+
+    void change_size(int size)
+    {
+        if (m_size == size)
+        {
+            return;
+        }
+
+        TTF_Font *font = TTF_OpenFont(m_path.c_str(), size);
+
+        if (not font)
+        {
+            return;
+        }
+
+        TTF_CloseFont(m_font);
+        m_font = font;
+        m_size = size;
+    }
+};
+
+Font::Font(TTF_Font *font, const string& path, int size)
+    : m_impl(new Font::Impl(font, path, size))
+{
 }
 
-
-Font_Manager::Font_Manager()
+Font::~Font()
 {
+}
+
+Font *
+Font::from_file(const string& path) throw (Exception)
+{
+    TTF_Font *font = TTF_OpenFont(path.c_str(), 20);
+
+    if (not font)
+    {
+        throw Exception(TTF_GetError());
+    }
+
+    return new Font(font, path);
+}
+
+TTF_Font *
+Font::font() const
+{
+    return m_impl->font();
+}
+
+int
+Font::size() const
+{
+    return m_impl->size();
+}
+
+Font::Style
+Font::style() const
+{
+    return m_impl->style();
 }
 
 void
-Font_Manager::init() throw (Exception)
+Font::set_size(int size)
 {
-	int rc = TTF_Init();
-
-	if(rc < 0)
-	{
-		throw Exception(SDL_GetError());
-	}
+    m_impl->set_size(size);
 }
 
-Font_Manager::~Font_Manager(){
-	delete instance;
-	TTF_Quit();
-}
-
-void 
-Font_Manager::load_font( string path, unsigned int font_size) throw (Exception)
+void
+Font::set_style(Style style)
 {
-	m_font = TTF_OpenFont(path.c_str() , font_size );
-
-	if ( m_font == nullptr )
-	{
-		throw Exception(TTF_GetError());
-	}
-}
-
-void 
-Font_Manager::close_font()
-{
-	TTF_CloseFont(m_font);
-	m_font = NULL;
-}
-
-
-void    
-Font_Manager::make_message( SDL_Renderer * renderer, string message, Color color) throw (Exception)
-{
-	SDL_Surface* surfaceMessage  = nullptr;
-	SDL_Color m_color = {color.r(), color.g(), color.b(), color.a() };
-	surfaceMessage = TTF_RenderText_Solid(m_font, message.c_str() , m_color );
-	
-	if ( surfaceMessage == nullptr)
-	{
-		throw Exception(TTF_GetError());
-	}
-
-	m_message = SDL_CreateTextureFromSurface(renderer, surfaceMessage);
-
-	if(m_message == nullptr)
-	{
-		throw Exception(TTF_GetError());
-	}
-}
-
-SDL_Texture* 
-Font_Manager::message()const
-{
-	return m_message;
+    m_impl->set_style(style);
 }

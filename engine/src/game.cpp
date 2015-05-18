@@ -5,14 +5,16 @@
  * Data: 26/03/2015
  * Licença: LGPL. Sem copyright.
  */
-#include "game.h"
-#include "video.h"
-#include "environment.h"
-#include "systemevent.h"
-#include "keyboardevent.h"
+#include "core/game.h"
+#include "core/video.h"
+#include "core/environment.h"
+#include "core/systemevent.h"
+#include "core/keyboardevent.h"
 
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_mixer.h>
 
+#include <iostream>
 using namespace std;
 
 Game::Game(const string& id)
@@ -42,7 +44,8 @@ Game::init(const string& title, int w, int h) throw (Exception)
 
     SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER);
 
-    if(SDL_NumJoysticks() > 0){
+    if (SDL_NumJoysticks() > 0)
+    {
         SDL_GameControllerOpen(0);
     }
 
@@ -66,7 +69,7 @@ Game::run()
         update_screen();
         delay(1);
 
-        if (m_level->is_done())
+        if (m_level->finished())
         {
             string next = m_level->next();
             delete m_level;

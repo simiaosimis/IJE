@@ -1,21 +1,21 @@
 /*
- * Implementação da classe que representa um evento de butão do mouse.
+ * Implementação da classe que representa um evento de botão do mouse.
  *
  * Autor: Edson Alves
  * Data: 22/04/2015
  * Licença: LGPL. Sem copyright.
  */
-#include "mousebuttonevent.h"
+#include "core/mousebuttonevent.h"
 
-MouseButtonEvent::MouseButtonEvent(Action action, Button button, int x, int y)
-    : m_action(action), m_button(button), m_x(x), m_y(y)
+MouseButtonEvent::MouseButtonEvent(State state, Button button,
+    double x, double y) : m_state(state), m_button(button), m_x(x), m_y(y)
 {
 }
 
-MouseButtonEvent::Action
-MouseButtonEvent::action() const
+MouseButtonEvent::State
+MouseButtonEvent::state() const
 {
-    return m_action;
+    return m_state;
 }
 
 MouseButtonEvent::Button
@@ -24,13 +24,13 @@ MouseButtonEvent::button() const
     return m_button;
 }
 
-int
+double
 MouseButtonEvent::x() const
 {
     return m_x;
 }
 
-int
+double
 MouseButtonEvent::y() const
 {
     return m_y;
@@ -39,8 +39,8 @@ MouseButtonEvent::y() const
 MouseButtonEvent
 MouseButtonEvent::from_SDL(const SDL_Event& event)
 {
-    MouseButtonEvent::Action action = (event.type == SDL_MOUSEBUTTONDOWN ?
-        MouseButtonEvent::DOWN : MouseButtonEvent::UP);
+    MouseButtonEvent::State state = (event.type == SDL_MOUSEBUTTONDOWN ?
+        MouseButtonEvent::PRESSED : MouseButtonEvent::RELEASED);
 
     MouseButtonEvent::Button button;
 
@@ -59,5 +59,5 @@ MouseButtonEvent::from_SDL(const SDL_Event& event)
         break;
     }
 
-    return MouseButtonEvent(action, button, event.button.x, event.button.y);
+    return MouseButtonEvent(state, button, event.button.x, event.button.y);
 }
